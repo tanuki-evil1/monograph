@@ -1,15 +1,13 @@
 run:
-  uvicorn app.handlers.api.api:app --reload --port 8000
+	uvicorn app.handlers.api.api:app --reload --port 8000
 
 check:
-  ruff check .
-  ruff format --check .
-
-install:
-  uv sync --no-dev
+	ruff check .
+	ruff format --check .
+	mypy .
 
 al:
-  alembic -c alembic.ini revision --autogenerate -m"$(comment)"
+	alembic -c alembic.ini revision --autogenerate -m"$(comment)"
 
-upgrade:
-  alembic -c alembic.ini upgrade head
+migrate:
+	alembic -c alembic.ini upgrade head
