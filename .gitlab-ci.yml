@@ -1,0 +1,53 @@
+stages:
+- build_dev
+- build_stage
+- build_prod
+
+variables:
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+  IMAGE: $CI_REGISTRY_IMAGE/$CI_PROJECT_NAME-$CI_COMMIT_BRANCH
+
+default:
+  services:
+  - docker:dind
+  tags:
+  - dind
+
+.build_script: &build_script
+  - docker system prune -a -f
+  - docker build -t $IMAGE --no-cache .
+  - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
+  - docker tag $IMAGE $IMAGE:$IMAGE_TAG
+  - docker tag $IMAGE $IMAGE:latest
+  - docker push --all-tags $IMAGE
+
+build_dev:
+  stage: build_dev
+  except:
+    changes:
+    - "manifest/dev/*"
+  script:
+  - *build_script
+  only:
+  - main
+  when: manual
+
+build_stage:
+  stage: build_stage
+  except:
+    changes:
+    - "manifest/stage/*"
+  script:
+  - *build_script
+  only:
+  - stage
+
+build_prod:
+  stage: build_prod
+  except:
+    changes:
+    - "manifest/prod/*"
+  script:
+  - *build_script
+  only:
+  - prod
